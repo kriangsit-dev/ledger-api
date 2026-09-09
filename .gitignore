@@ -17,6 +17,7 @@ coverage/
 *.trx
 test-output.txt
 demo-output.txt
+prod-check.txt
 .DS_Store
 appsettings.Production.json
 appsettings.Local.json

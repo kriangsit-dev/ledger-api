@@ -1,16 +1,29 @@
 <#
     Walks a running Ledger API through the behaviour the README claims, using real HTTP calls.
 
-    Start the API first:
+    Against a local instance — start the API first:
         docker compose up -d
         dotnet run --project src/Ledger.Api
 
     Then, in a second terminal:
         powershell -ExecutionPolicy Bypass -File scripts/demo.ps1
+
+    Against the deployed instance, with the credentials from the host's dashboard:
+        powershell -ExecutionPolicy Bypass -File scripts/demo.ps1 `
+            -BaseUrl https://ledger-api-e2g7.onrender.com `
+            -ClientSecret <demo-writer secret> -ReaderSecret <demo-reader secret>
 #>
 
+param(
+    [string] $BaseUrl = 'http://localhost:5080',
+    [string] $ClientId = 'demo-writer',
+    [string] $ClientSecret = 'demo-writer-secret',
+    [string] $ReaderId = 'demo-reader',
+    [string] $ReaderSecret = 'demo-reader-secret'
+)
+
 $ErrorActionPreference = 'Stop'
-$Base = 'http://localhost:5080/api/v1'
+$Base = "$($BaseUrl.TrimEnd('/'))/api/v1"
 
 function Write-Step($number, $text) {
     Write-Host ''
@@ -48,9 +61,16 @@ Write-Host ''
 Write-Host 'Ledger API — live walkthrough' -ForegroundColor White
 Write-Host "Target: $Base"
 
+Write-Step 0 'Wake the server'
+# A free-tier instance sleeps when idle. The first request can take the best part of a minute, so
+# it is spent on a health check rather than on a call whose timeout would look like a real failure.
+$warmup = [Diagnostics.Stopwatch]::StartNew()
+Invoke-RestMethod -Uri "$BaseUrl/health/ready" -TimeoutSec 120 | Out-Null
+Write-Ok ("ready after {0:N1}s" -f $warmup.Elapsed.TotalSeconds)
+
 Write-Step 1 'Exchange client credentials for a bearer token'
 $token = (Invoke-RestMethod -Method Post -Uri "$Base/auth/token" -ContentType 'application/json' `
-        -Body (New-Json @{ clientId = 'demo-writer'; clientSecret = 'demo-writer-secret' })).accessToken
+        -Body (New-Json @{ clientId = $ClientId; clientSecret = $ClientSecret })).accessToken
 $write = @{ Authorization = "Bearer $token" }
 Write-Ok ("token issued, {0} characters" -f $token.Length)
 
@@ -144,7 +164,7 @@ Assert-Equal ([decimal] $trial.totalDebits) ([decimal] $trial.totalCredits) 'tot
 
 Write-Step 11 'Authorisation: a read-only token tries to write, then an anonymous read'
 $readToken = (Invoke-RestMethod -Method Post -Uri "$Base/auth/token" -ContentType 'application/json' `
-        -Body (New-Json @{ clientId = 'demo-reader'; clientSecret = 'demo-reader-secret' })).accessToken
+        -Body (New-Json @{ clientId = $ReaderId; clientSecret = $ReaderSecret })).accessToken
 $status = Get-FailureStatus {
     Invoke-RestMethod -Method Post -Uri "$Base/journal-entries" -Headers @{ Authorization = "Bearer $readToken"; 'Idempotency-Key' = [guid]::NewGuid() } `
         -ContentType 'application/json' -Body $sale
