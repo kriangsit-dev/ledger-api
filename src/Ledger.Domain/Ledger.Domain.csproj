@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The domain project deliberately has zero package references. Business rules must be
+    testable without a database, a web host, or any framework at all.
+  -->
+
+</Project>

@@ -1,0 +1,39 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,md}]
+indent_size = 2
+
+[*.{csproj,props,targets,slnx}]
+indent_size = 2
+
+[*.cs]
+# Modern C# style, applied by `dotnet format` and checked in CI.
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_prefer_braces = true:warning
+csharp_style_prefer_primary_constructors = true:silent
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Async methods must be awaited or explicitly discarded — a dropped Task in a ledger means a
+# posting that silently never happened.
+dotnet_diagnostic.CS4014.severity = error
+
+# EF Core writes the migration files, so hand-written style rules do not apply to them. Marking
+# them generated keeps `dotnet format` and the IDE analyzers away without weakening the rules
+# anywhere they actually matter.
+[**/Migrations/*.cs]
+generated_code = true
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0055.severity = none
+dotnet_diagnostic.IDE0005.severity = none
