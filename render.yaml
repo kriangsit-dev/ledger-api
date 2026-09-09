@@ -30,10 +30,12 @@ services:
       - key: Auth__SigningKey
         generateValue: true
 
+      # Generated too. A human-chosen demo password is the weakest link in an otherwise careful
+      # setup; the values are readable in the Render dashboard when the client needs configuring.
       - key: Auth__Clients__0__ClientId
         value: demo-writer
       - key: Auth__Clients__0__ClientSecret
-        sync: false
+        generateValue: true
       - key: Auth__Clients__0__Scopes__0
         value: ledger.read
       - key: Auth__Clients__0__Scopes__1
@@ -42,7 +44,7 @@ services:
       - key: Auth__Clients__1__ClientId
         value: demo-reader
       - key: Auth__Clients__1__ClientSecret
-        sync: false
+        generateValue: true
       - key: Auth__Clients__1__Scopes__0
         value: ledger.read
 
