@@ -108,6 +108,22 @@ dotnet run --project src/Ledger.Api
 
 Interactive API reference: <http://localhost:5080/scalar/v1>
 
+### Prove it works, in one command
+
+Passing tests show the logic is right; they do not show the service actually answering HTTP.
+With the API running, this walks a live instance through every claim on this page:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/demo.ps1
+```
+
+It opens two accounts, posts a balanced entry, retries it with the same `Idempotency-Key` and
+checks the entry id came back identical, reuses that key with a different amount and expects 409,
+posts an unbalanced entry and expects 422, drops the key entirely and expects 400, reverses the
+entry and checks the balance returns to zero while the original stays in place, confirms the trial
+balance nets to zero, and finishes by checking a read-only token cannot write and an anonymous
+caller cannot read. Eighteen assertions, all against a running server.
+
 ### A worked example
 
 ```bash
