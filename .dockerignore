@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.idea/
+.git/
+.github/
+tests/
+scripts/
+artifacts/
+TestResults/
+*.md
+*.txt
+docker-compose.yml
+Ledger.slnx
